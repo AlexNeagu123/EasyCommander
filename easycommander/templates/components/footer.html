@@ -1,0 +1,16 @@
+{% from 'components/button-box.html' import buttonBox %}
+{% macro footer() %}
+     <footer>
+        <div class="footer-container">
+            {{ buttonBox(1, "Rename") }}
+            {{ buttonBox(2, "View") }}
+            {{ buttonBox(3, "Edit") }}
+            {{ buttonBox(4, "Copy") }}
+            {{ buttonBox(5, "Move") }}
+            {{ buttonBox(6, "MkDir") }}
+            {{ buttonBox(7, "MkFile") }}
+            {{ buttonBox(8, "Delete") }}
+            {{ buttonBox(9, "Quit") }}
+        </div>
+    </footer>
+{%- endmacro %}

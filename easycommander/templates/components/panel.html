@@ -1,0 +1,29 @@
+{% macro panel(folder_content, id_prefix) %}
+    <div class="panel">
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Ext</th>
+                <th>Size</th>
+                <th>Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for child in folder_content['children'] %}
+                {% set tr_class = 'file-name' %}
+                {% set tr_id = id_prefix ~ loop.index %}
+                {% if child['extension'] == '<<DIR>>' %}
+                    {% set tr_class = 'folder-name' %}
+                {% endif %}
+                <tr class="{{ tr_class }}" id="{{ tr_id }}">
+                    <td>{{ child['name'] }}</td>
+                    <td>{{ child['extension'] }}</td>
+                    <td>{{ child['size'] }}</td>
+                    <td>{{ child['created_date'] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{%- endmacro %}
