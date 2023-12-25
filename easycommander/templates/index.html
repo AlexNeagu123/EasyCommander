@@ -5,8 +5,8 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
 <body>
 <div class="panels-container">
-    {{ panel(folder_content, 'L') }}
-    {{ panel(folder_content, 'R') }}
+    {{ panel(left_children, 'L', 'left-row') }}
+    {{ panel(right_children, 'R', 'right-row') }}
 </div>
 {{ footer() }}
 <script src="{{ url_for('static', filename='scripts/index.js') }}"></script>

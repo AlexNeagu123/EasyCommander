@@ -16,12 +16,16 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow: hidden;
 }
 
 footer {
     background-color: black;
     color: #fff;
     margin-top: auto;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
 }
 
 .footer-container {
@@ -55,7 +59,6 @@ footer {
 .panels-container {
     display: flex;
     height: 100%;
-    overflow: auto;
     flex: 1;
 }
 
@@ -64,10 +67,23 @@ footer {
     padding: 20px;
     border: 2px double #B5F1E0;
     margin: 2px;
-    max-height: 100%;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    max-height: calc(100vh - 50px);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
-.panel table {
+.panel td {
+    word-wrap: break-word;
+    max-width: 200px;
+}
+
+.panel::-webkit-scrollbar {
+    display: none;
+}
+
+table {
     width: 100%;
     border-collapse: collapse;
 }
@@ -86,10 +102,11 @@ footer {
 }
 
 .panel .file-name td {
-    color: #B5F1E0;
+    color: rgba(181, 241, 224, 0.5);
     font-weight: bold;
 }
 
-.panel tbody tr:hover {
-    background-color: #088F8F; /* Color matching the footer buttons */
+.selected {
+    background-color: #088F8F;
+    outline: none; /* Remove the default focus outline */
 }
