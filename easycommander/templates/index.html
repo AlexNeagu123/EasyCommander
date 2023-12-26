@@ -1,6 +1,7 @@
 <!doctype html>
 {% from 'components/footer.html' import footer %}
 {% from 'components/panel.html' import panel %}
+{% from 'components/rename-modal.html'import renameModal %}
 <title>Hello from Flask</title>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
 <body>
@@ -8,6 +9,7 @@
     {{ panel(left_panel, 'L', 'left-row') }}
     {{ panel(right_panel, 'R', 'right-row') }}
 </div>
+{{ renameModal() }}
 {{ footer() }}
 <script src="{{ url_for('static', filename='scripts/index.js') }}"></script>
 </body>

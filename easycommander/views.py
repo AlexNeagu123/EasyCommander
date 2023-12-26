@@ -4,6 +4,7 @@ from flask import render_template, request, redirect, url_for
 from .services import get_folder_data
 from easycommander import app
 from urllib.parse import unquote
+from .response import Response
 
 
 @app.route('/')
@@ -20,3 +21,16 @@ def index():
 
     return render_template('index.html', left_panel=left_panel,
                            right_panel=right_panel, current_tab=current_tab)
+
+
+@app.route("/api/v1/rename", methods=["POST"])
+def rename_folder():
+    try:
+        data = request.get_json()
+        old_name, new_name = data.get("old_name", ''), data.get("new_name", '')
+        if old_name == '' or new_name == '':
+            return Response(False, "All the fields are required").to_json(), 400
+        os.rename(old_name, new_name)
+        return Response(True, "File successfully renamed").to_json(), 201
+    except Exception as e:
+        return Response(False, str(e)).to_json(), 400

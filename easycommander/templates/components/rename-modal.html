@@ -1,0 +1,12 @@
+{% macro renameModal() %}
+    <div class="overlap-container" id="rename-modal">
+        <div class="modal-box">
+            <label id="rename-label" for="rename-option"></label>
+            <input type="text" id="rename-option" value=""/>
+            <div class="button-box">
+                <button type="button" id="rename-button">Rename</button>
+                <button type="button" id="cancel-button" onclick="closeModal('rename-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}

@@ -56,6 +56,10 @@ footer {
     padding: 3px 20px;
 }
 
+.panel tbody tr {
+    user-select: none;
+}
+
 .panels-container {
     display: flex;
     height: 100%;
@@ -121,4 +125,65 @@ table {
     overflow: hidden;
     text-overflow: ellipsis;
     direction: rtl;
+}
+
+.overlap-container {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-size: 2rem;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    gap: 20px;
+}
+
+#rename-modal {
+    display: none;
+}
+
+#rename-modal .modal-box {
+    background-color: #B0B0B0;
+    border: 2px solid #088F8F;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    width: 50vw;
+}
+
+.modal-box label {
+    font-size: smaller;
+    margin-bottom: 0.2em;
+}
+
+#rename-option {
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 75%;
+    background-color: #088F8F;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+#rename-modal .button-box {
+    display: flex;
+    gap: 5px;
+}
+
+#rename-button, #cancel-button {
+    cursor: pointer;
+    background-color: #088F8F;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 20px;
 }

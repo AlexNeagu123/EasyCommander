@@ -9,6 +9,13 @@ let rightPath = searchParams.get('right_path');
 let leftIndex = 1;
 let rightIndex = 1;
 let isLeftOn = searchParams.get('tab') !== '1';
+let isModalActive = false;
+
+function closeModal(modalId) {
+    isModalActive = false;
+    document.getElementById(modalId).style.display = "none";
+    focusSelectedElement();
+}
 
 changeFolder = async (folderPath) => {
     if (isLeftOn) {
@@ -24,10 +31,45 @@ changeFolder = async (folderPath) => {
     window.location.href = `http://127.0.0.1:5000/?left_path=${encodedLeftPath}&right_path=${encodedRightPath}&tab=${encodedTab}`
 }
 
-handleKeyPress = async (event, folderPath) => {
+handleKeyPress = async (event, folderPath, baseName) => {
+    if (isModalActive) {
+        return;
+    }
     event.preventDefault();
     if (event.key === "Enter") {
         await changeFolder(folderPath);
+    }
+    if (event.key === '1') {
+        if (baseName === "..") {
+            return;
+        }
+        await openRenameModal(baseName);
+    }
+}
+
+renameSelectedFolder = async (event, oldName) => {
+    const oldPath = isLeftOn ? `${leftPath}/${oldName}` : `${rightPath}/${oldName}`;
+    const newName = document.getElementById("rename-option").value;
+    const newPath = isLeftOn ? `${leftPath}/${newName}` : `${rightPath}/${newName}`;
+
+    // TODO: Make a wrapper for fetches
+    const responseData = await fetch('http://127.0.0.1:5000/api/v1/rename', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            old_name: oldPath,
+            new_name: newPath
+        })
+    }).then(response => {
+        return response.json();
+    });
+    if(!responseData.success) {
+        alert("Rename failed!");
+    }
+    else {
+        window.location.reload();
     }
 }
 
@@ -36,7 +78,7 @@ function toggleClassOnElementById(elementId, className) {
     element.classList.toggle(className);
 }
 
-handleChangeSelectedClick = async(event, clickedId) => {
+handleChangeSelectedClick = async (event, clickedId) => {
     event.preventDefault();
     isLeftOn ? toggleClassOnElementById(`L${leftIndex}`, 'selected') :
         toggleClassOnElementById(`R${rightIndex}`, 'selected');
@@ -45,7 +87,7 @@ handleChangeSelectedClick = async(event, clickedId) => {
 
     const newIndex = Number(clickedId.substring(1));
     clickedId.startsWith('L') ? leftIndex = newIndex : rightIndex = newIndex;
-    clickedId.startsWith('L') ? isLeftOn = true : isLeftOn  = false;
+    clickedId.startsWith('L') ? isLeftOn = true : isLeftOn = false;
 }
 
 function focusSelectedElement() {
@@ -75,7 +117,20 @@ function changeSelected(isDown = true) {
     focusSelectedElement();
 }
 
+openRenameModal = async (baseName) => {
+    const renameModal = document.getElementById('rename-modal');
+    document.getElementById("rename-option").value = `${baseName}`;
+    document.getElementById("rename-label").textContent = `Rename ${baseName} to:`;
+    renameModal.style.display = "flex";
+    isModalActive = true;
+    document.getElementById("rename-button").addEventListener('click', async (event) =>
+        renameSelectedFolder(event, baseName));
+}
+
 document.addEventListener("keydown", (event) => {
+    if (isModalActive) {
+        return;
+    }
     event.preventDefault();
     if (event.key === "Tab") {
         handlePanelSwitch();

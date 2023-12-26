@@ -36,5 +36,6 @@ def get_folder_data(dir_path):
 
     return {
         'path': dir_path.replace('\\', '/'),
+        'name': os.path.basename(dir_path),
         'children': children
     }
