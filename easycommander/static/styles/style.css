@@ -108,5 +108,17 @@ table {
 
 .selected {
     background-color: #088F8F;
-    outline: none; /* Remove the default focus outline */
+    outline: none;
+}
+
+.panel-header {
+    background-color: #088F8F;
+    color: #B5F1E0;
+    padding: 10px;
+    border-bottom: 2px solid #888;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: rtl;
 }

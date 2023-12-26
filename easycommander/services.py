@@ -26,7 +26,7 @@ def get_file_info(file_path, parent_folder=None):
     return file_info
 
 
-def get_folder_children(dir_path):
+def get_folder_data(dir_path):
     children = list()
     for child in ["..", *os.listdir(dir_path)]:
         child_path = child
@@ -34,4 +34,7 @@ def get_folder_children(dir_path):
             child_path = os.path.join(dir_path, child)
         children.append(get_file_info(child_path, parent_folder=str(Path(dir_path).parent.absolute())))
 
-    return children
+    return {
+        'path': dir_path.replace('\\', '/'),
+        'children': children
+    }

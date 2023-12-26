@@ -1,5 +1,6 @@
-{% macro panel(children, id_prefix, row_class) %}
+{% macro panel(panel_info, id_prefix, row_class) %}
     <div class="panel">
+        <div class="panel-header">{{ panel_info['path'] }}</div>
         <table>
             <thead>
             <tr>
@@ -10,13 +11,14 @@
             </tr>
             </thead>
             <tbody>
-            {% for child in children %}
+            {% for child in panel_info['children'] %}
                 {% set tr_class = 'file-name' %}
                 {% set tr_id = id_prefix ~ loop.index %}
                 {% if child['extension'] == '<<DIR>>' %}
                     {% set tr_class = 'folder-name' %}
                 {% endif %}
                 <tr onkeydown="handleKeyPress(event, '{{ child['full_path']|safe }}')" tabindex="0"
+                    onclick="handleChangeSelectedClick(event, '{{ tr_id }}')"
                     class="{{ tr_class }} {{ row_class }}" id="{{ tr_id }}">
                     <td>{{ child['name'] }}</td>
                     <td>{{ child['extension'] }}</td>

@@ -1,7 +1,7 @@
 import os
 
 from flask import render_template, request, redirect, url_for
-from .services import get_folder_children
+from .services import get_folder_data
 from easycommander import app
 from urllib.parse import unquote
 
@@ -14,9 +14,9 @@ def index():
         current_directory = os.getcwd()
         return redirect(url_for('index', left_path=current_directory, right_path=current_directory, tab='0'))
 
-    left_children = get_folder_children(unquote(left_path))
-    right_children = get_folder_children(unquote(right_path))
+    left_panel = get_folder_data(unquote(left_path))
+    right_panel = get_folder_data(unquote(right_path))
     current_tab = unquote(current_tab)
 
-    return render_template('index.html', left_children=left_children,
-                           right_children=right_children, current_tab=current_tab)
+    return render_template('index.html', left_panel=left_panel,
+                           right_panel=right_panel, current_tab=current_tab)

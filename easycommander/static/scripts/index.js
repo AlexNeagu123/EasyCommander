@@ -11,16 +11,16 @@ let rightIndex = 1;
 let isLeftOn = searchParams.get('tab') !== '1';
 
 changeFolder = async (folderPath) => {
-    if(isLeftOn) {
+    if (isLeftOn) {
         leftPath = folderPath;
-    }
-    else {
+    } else {
         rightPath = folderPath;
     }
 
     const encodedLeftPath = encodeURIComponent(leftPath);
     const encodedRightPath = encodeURIComponent(rightPath);
     const encodedTab = encodeURIComponent(isLeftOn ? '0' : '1');
+
     window.location.href = `http://127.0.0.1:5000/?left_path=${encodedLeftPath}&right_path=${encodedRightPath}&tab=${encodedTab}`
 }
 
@@ -34,6 +34,18 @@ handleKeyPress = async (event, folderPath) => {
 function toggleClassOnElementById(elementId, className) {
     const element = document.getElementById(elementId);
     element.classList.toggle(className);
+}
+
+handleChangeSelectedClick = async(event, clickedId) => {
+    event.preventDefault();
+    isLeftOn ? toggleClassOnElementById(`L${leftIndex}`, 'selected') :
+        toggleClassOnElementById(`R${rightIndex}`, 'selected');
+
+    toggleClassOnElementById(clickedId, 'selected');
+
+    const newIndex = Number(clickedId.substring(1));
+    clickedId.startsWith('L') ? leftIndex = newIndex : rightIndex = newIndex;
+    clickedId.startsWith('L') ? isLeftOn = true : isLeftOn  = false;
 }
 
 function focusSelectedElement() {
@@ -69,7 +81,7 @@ document.addEventListener("keydown", (event) => {
         handlePanelSwitch();
     }
     if (event.key === "ArrowDown") {
-       changeSelected(true);
+        changeSelected(true);
     }
     if (event.key === "ArrowUp") {
         changeSelected(false);
@@ -77,10 +89,9 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    if(isLeftOn) {
+    if (isLeftOn) {
         toggleClassOnElementById(`L${leftIndex}`, 'selected');
-    }
-    else {
+    } else {
         toggleClassOnElementById(`R${rightIndex}`, 'selected');
     }
     focusSelectedElement();
