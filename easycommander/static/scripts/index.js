@@ -1,23 +1,42 @@
-const LEFT_COUNT = document.querySelectorAll('.left-row').length
-const RIGHT_COUNT = document.querySelectorAll('.right-row').length
+const httpClient = new HttpRequest();
 
-const searchParams = new URLSearchParams(window.location.search)
-
-let leftPath = searchParams.get('left_path');
-let rightPath = searchParams.get('right_path');
-
-let leftIndex = 1;
-let rightIndex = 1;
-let isLeftOn = searchParams.get('tab') !== '1';
 let isModalActive = false;
 
-function closeModal(modalId) {
-    isModalActive = false;
-    document.getElementById(modalId).style.display = "none";
-    focusSelectedElement();
+let [leftPath, rightPath, isLeftOn] =
+    [SEARCH_PARAMS.get('left_path'), SEARCH_PARAMS.get('right_path'), SEARCH_PARAMS.get('tab') !== '1']
+
+let [leftIndex, rightIndex] = [1, 1];
+
+function toggleClassOnElementById(elementId, className) {
+    const element = document.getElementById(elementId);
+    element.classList.toggle(className);
 }
 
-changeFolder = async (folderPath) => {
+document.addEventListener("DOMContentLoaded", () => {
+    if (isLeftOn) {
+        toggleClassOnElementById(`L${leftIndex}`, 'selected');
+    } else {
+        toggleClassOnElementById(`R${rightIndex}`, 'selected');
+    }
+    focusSelectedElement();
+});
+
+document.addEventListener("keydown", (event) => {
+    if (isModalActive) {
+        return;
+    }
+    event.preventDefault();
+    if (event.key === "Tab") {
+        handlePanelSwitch();
+    }
+    if (event.key === "ArrowDown") {
+        changeSelected(true);
+    }
+    if (event.key === "ArrowUp") {
+        changeSelected(false);
+    }
+});
+const changeFolder = async (folderPath) => {
     if (isLeftOn) {
         leftPath = folderPath;
     } else {
@@ -28,10 +47,10 @@ changeFolder = async (folderPath) => {
     const encodedRightPath = encodeURIComponent(rightPath);
     const encodedTab = encodeURIComponent(isLeftOn ? '0' : '1');
 
-    window.location.href = `http://127.0.0.1:5000/?left_path=${encodedLeftPath}&right_path=${encodedRightPath}&tab=${encodedTab}`
+    window.location.href = `${LOCALHOST}/?left_path=${encodedLeftPath}&right_path=${encodedRightPath}&tab=${encodedTab}`
 }
 
-handleKeyPress = async (event, folderPath, baseName) => {
+async function handleKeyPressOnSelect(event, folderPath, baseName) {
     if (isModalActive) {
         return;
     }
@@ -47,38 +66,23 @@ handleKeyPress = async (event, folderPath, baseName) => {
     }
 }
 
-renameSelectedFolder = async (event, oldName) => {
+const renameSelectedFolder = async (event, oldName) => {
     const oldPath = isLeftOn ? `${leftPath}/${oldName}` : `${rightPath}/${oldName}`;
     const newName = document.getElementById("rename-option").value;
     const newPath = isLeftOn ? `${leftPath}/${newName}` : `${rightPath}/${newName}`;
 
-    // TODO: Make a wrapper for fetches
-    const responseData = await fetch('http://127.0.0.1:5000/api/v1/rename', {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+    try {
+        await httpClient.post(`${LOCALHOST}/${API_PATH}/rename`, {
             old_name: oldPath,
             new_name: newPath
-        })
-    }).then(response => {
-        return response.json();
-    });
-    if(!responseData.success) {
-        alert("Rename failed!");
-    }
-    else {
+        });
         window.location.reload();
+    } catch (err) {
+        alert(`Rename Failed: ${err}`);
     }
 }
 
-function toggleClassOnElementById(elementId, className) {
-    const element = document.getElementById(elementId);
-    element.classList.toggle(className);
-}
-
-handleChangeSelectedClick = async (event, clickedId) => {
+const handleChangeSelectedClick = async (event, clickedId) => {
     event.preventDefault();
     isLeftOn ? toggleClassOnElementById(`L${leftIndex}`, 'selected') :
         toggleClassOnElementById(`R${rightIndex}`, 'selected');
@@ -117,7 +121,7 @@ function changeSelected(isDown = true) {
     focusSelectedElement();
 }
 
-openRenameModal = async (baseName) => {
+const openRenameModal = async (baseName) => {
     const renameModal = document.getElementById('rename-modal');
     document.getElementById("rename-option").value = `${baseName}`;
     document.getElementById("rename-label").textContent = `Rename ${baseName} to:`;
@@ -127,27 +131,8 @@ openRenameModal = async (baseName) => {
         renameSelectedFolder(event, baseName));
 }
 
-document.addEventListener("keydown", (event) => {
-    if (isModalActive) {
-        return;
-    }
-    event.preventDefault();
-    if (event.key === "Tab") {
-        handlePanelSwitch();
-    }
-    if (event.key === "ArrowDown") {
-        changeSelected(true);
-    }
-    if (event.key === "ArrowUp") {
-        changeSelected(false);
-    }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    if (isLeftOn) {
-        toggleClassOnElementById(`L${leftIndex}`, 'selected');
-    } else {
-        toggleClassOnElementById(`R${rightIndex}`, 'selected');
-    }
+const closeModal = (modalId) => {
+    isModalActive = false;
+    document.getElementById(modalId).style.display = "none";
     focusSelectedElement();
-});
+}
