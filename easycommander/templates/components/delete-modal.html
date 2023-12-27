@@ -1,0 +1,11 @@
+{% macro deleteModal() %}
+    <div class="overlap-container" id="delete-modal">
+        <div class="modal-box">
+            <p id="delete-label"></p>
+            <div class="button-box">
+                <button type="button" id="delete-button">Delete</button>
+                <button type="button" id="cancel-button" onclick="closeModal('delete-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}

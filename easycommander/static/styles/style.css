@@ -147,7 +147,11 @@ table {
     display: none;
 }
 
-#rename-modal .modal-box {
+#delete-modal {
+    display: none;
+}
+
+#rename-modal .modal-box, #delete-modal .modal-box {
     background-color: #B0B0B0;
     border: 2px solid #088F8F;
     padding: 20px;
@@ -159,7 +163,7 @@ table {
     width: 50vw;
 }
 
-.modal-box label {
+#rename-modal .modal-box label, #delete-modal .modal-box p {
     font-size: smaller;
     margin-bottom: 0.2em;
 }
@@ -174,12 +178,12 @@ table {
     border-radius: 5px;
 }
 
-#rename-modal .button-box {
+#rename-modal .button-box, #delete-modal .button-box {
     display: flex;
     gap: 5px;
 }
 
-#rename-button, #cancel-button {
+#rename-button, #delete-button, #cancel-button {
     cursor: pointer;
     background-color: #088F8F;
     color: white;

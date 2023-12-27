@@ -2,6 +2,8 @@
 {% from 'components/footer.html' import footer %}
 {% from 'components/panel.html' import panel %}
 {% from 'components/rename-modal.html'import renameModal %}
+{% from 'components/delete-modal.html'import deleteModal %}
+
 <title>Hello from Flask</title>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
 <body>
@@ -10,6 +12,7 @@
     {{ panel(right_panel, 'R', 'right-row') }}
 </div>
 {{ renameModal() }}
+{{ deleteModal() }}
 {{ footer() }}
 
 <script src="{{ url_for('static', filename='scripts/globals.js') }}"></script>

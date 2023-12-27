@@ -58,11 +58,14 @@ async function handleKeyPressOnSelect(event, folderPath, baseName) {
     if (event.key === "Enter") {
         await changeFolder(folderPath);
     }
+    if (baseName === "..") {
+        return;
+    }
     if (event.key === '1') {
-        if (baseName === "..") {
-            return;
-        }
         await openRenameModal(baseName);
+    }
+    if(event.key === '8') {
+        await openDeleteModal(baseName);
     }
 }
 
@@ -79,6 +82,17 @@ const renameSelectedFolder = async (event, oldName) => {
         window.location.reload();
     } catch (err) {
         alert(`Rename Failed: ${err}`);
+    }
+}
+
+const deleteSelectedFolder = async(event, fileName) => {
+    let fullPath = isLeftOn ? `${leftPath}/${fileName}` : `${rightPath}/${fileName}`;
+    fullPath = encodeURIComponent(fullPath);
+    try {
+        await httpClient.delete(`${LOCALHOST}/${API_PATH}/delete?path=${fullPath}`);
+        window.location.reload();
+    } catch(err) {
+        alert(`Delete Failed: ${err}`);
     }
 }
 
@@ -129,6 +143,15 @@ const openRenameModal = async (baseName) => {
     isModalActive = true;
     document.getElementById("rename-button").addEventListener('click', async (event) =>
         renameSelectedFolder(event, baseName));
+}
+
+const openDeleteModal = async(baseName) => {
+    const deleteModal = document.getElementById('delete-modal');
+    document.getElementById("delete-label").textContent = `Are you sure you want to move ${baseName} to the Recycle Bin?`;
+    deleteModal.style.display = "flex";
+    isModalActive = true;
+    document.getElementById("delete-button").addEventListener('click', async (event) =>
+        deleteSelectedFolder(event, baseName));
 }
 
 const closeModal = (modalId) => {
