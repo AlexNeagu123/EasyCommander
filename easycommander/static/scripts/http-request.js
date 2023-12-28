@@ -28,9 +28,6 @@ class HttpRequest {
     }
 
     async handleResponse(response) {
-        if(!response.ok) {
-            throw new Error(response.statusText);
-        }
         const data = await response.json();
         if(!data.success) {
             throw new Error(data.message);

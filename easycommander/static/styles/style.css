@@ -67,8 +67,9 @@ footer {
 }
 
 .panel {
+    position: relative;
     flex: 1;
-    padding: 20px;
+    padding: 0 20px 20px;
     border: 2px double #B5F1E0;
     margin: 2px;
     overflow-y: scroll;
@@ -116,6 +117,8 @@ table {
 }
 
 .panel-header {
+    position: sticky;
+    top: 0;
     background-color: #088F8F;
     color: #B5F1E0;
     padding: 10px;
@@ -125,6 +128,7 @@ table {
     overflow: hidden;
     text-overflow: ellipsis;
     direction: rtl;
+    z-index: 1000; /* Make sure it's above other elements */
 }
 
 .overlap-container {
