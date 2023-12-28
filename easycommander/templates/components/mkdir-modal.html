@@ -1,0 +1,12 @@
+{% macro mkDirModal() %}
+    <div class="overlap-container" id="mkdir-modal">
+        <div class="modal-box">
+            <label id="mkdir-label" for="folder-name-input">Enter the name of the newly created folder</label>
+            <input type="text" id="folder-name-input" value=""/>
+            <div class="button-box">
+                <button type="button" id="mkdir-button">Create</button>
+                <button type="button" id="cancel-button" onclick="closeModal('mkdir-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}

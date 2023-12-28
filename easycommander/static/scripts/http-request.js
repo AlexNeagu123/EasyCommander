@@ -32,6 +32,6 @@ class HttpRequest {
         if(!data.success) {
             throw new Error(data.message);
         }
-        return data;
+        return data.message;
     }
 }

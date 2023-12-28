@@ -1,0 +1,12 @@
+{% macro mkFileModal() %}
+    <div class="overlap-container" id="mkfile-modal">
+        <div class="modal-box">
+            <label id="mkfile-label" for="file-name-input">Enter the name of the newly created file</label>
+            <input type="text" id="file-name-input" value=""/>
+            <div class="button-box">
+                <button type="button" id="mkfile-button">Create</button>
+                <button type="button" id="cancel-button" onclick="closeModal('mkfile-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}

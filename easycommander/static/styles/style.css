@@ -32,13 +32,14 @@ footer {
     max-width: 1200px;
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: flex-start;
 }
 
 .button-box {
     display: flex;
     align-items: center;
     flex-direction: row;
+    margin: 0.2em 0.5em;
 }
 
 .button-box p {
@@ -128,7 +129,7 @@ table {
     overflow: hidden;
     text-overflow: ellipsis;
     direction: rtl;
-    z-index: 1000; /* Make sure it's above other elements */
+    z-index: 1000;
 }
 
 .overlap-container {
@@ -147,15 +148,11 @@ table {
     gap: 20px;
 }
 
-#rename-modal {
+#rename-modal, #delete-modal, #mkfile-modal, #mkdir-modal {
     display: none;
 }
 
-#delete-modal {
-    display: none;
-}
-
-#rename-modal .modal-box, #delete-modal .modal-box {
+.modal-box {
     background-color: #B0B0B0;
     border: 2px solid #088F8F;
     padding: 20px;
@@ -167,12 +164,12 @@ table {
     width: 50vw;
 }
 
-#rename-modal .modal-box label, #delete-modal .modal-box p {
+.modal-box label, .modal-box p {
     font-size: smaller;
     margin-bottom: 0.2em;
 }
 
-#rename-option {
+#rename-option, #file-name-input, #folder-name-input {
     padding: 10px;
     margin-bottom: 10px;
     width: 75%;
@@ -182,16 +179,34 @@ table {
     border-radius: 5px;
 }
 
-#rename-modal .button-box, #delete-modal .button-box {
+.button-box {
     display: flex;
     gap: 5px;
 }
 
-#rename-button, #delete-button, #cancel-button {
+#rename-button, #delete-button, #mkfile-button, #mkdir-button, #cancel-button {
     cursor: pointer;
     background-color: #088F8F;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 5px 20px;
+}
+
+#content-container {
+    font-weight: bold;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 20px;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    max-height: calc(100vh - 100px);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    white-space: pre-wrap;
+    outline: none;
+}
+
+#content-container::-webkit-scrollbar {
+    display: none;
 }

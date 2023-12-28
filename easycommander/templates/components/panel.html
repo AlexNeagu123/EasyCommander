@@ -17,7 +17,7 @@
                 {% if child['extension'] == '<<DIR>>' %}
                     {% set tr_class = 'folder-name' %}
                 {% endif %}
-                <tr onkeydown="handleKeyPressOnSelect(event, '{{ child['full_path']|safe }}', '{{ child['name']|safe }}')" tabindex="0"
+                <tr onkeydown="handleKeyPressOnSelect(event, '{{ child['full_path']|safe }}', '{{ child['name']|safe }}', '{{ tr_class }}')" tabindex="0"
                     onclick="handleChangeSelectedClick(event, '{{ tr_id }}')"
                     class="{{ tr_class }} {{ row_class }}" id="{{ tr_id }}">
                     <td>{{ child['name'] }}</td>

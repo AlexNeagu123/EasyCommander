@@ -1,19 +1,26 @@
 <!doctype html>
+<html lang="en">
+
 {% from 'components/footer.html' import footer %}
 {% from 'components/panel.html' import panel %}
 {% from 'components/rename-modal.html'import renameModal %}
 {% from 'components/delete-modal.html'import deleteModal %}
+{% from 'components/mkfile-modal.html' import mkFileModal %}
+{% from 'components/mkdir-modal.html' import mkDirModal %}
 
-<title>Hello from Flask</title>
+<title>EasyCommander</title>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
 <body>
 <div class="panels-container">
     {{ panel(left_panel, 'L', 'left-row') }}
     {{ panel(right_panel, 'R', 'right-row') }}
 </div>
+
 {{ renameModal() }}
 {{ deleteModal() }}
-{{ footer() }}
+{{ mkFileModal() }}
+{{ mkDirModal() }}
+{{ footer("main") }}
 
 <script src="{{ url_for('static', filename='scripts/globals.js') }}"></script>
 <script src="{{ url_for('static', filename='scripts/http-request.js') }}"></script>

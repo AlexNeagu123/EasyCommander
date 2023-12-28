@@ -20,19 +20,89 @@ def index():
     right_panel = get_folder_data(unquote(right_path))
     current_tab = unquote(current_tab)
 
-    return render_template('index.html', left_panel=left_panel,
+    return render_template('pages/index.html', left_panel=left_panel,
                            right_panel=right_panel, current_tab=current_tab)
+
+
+@app.route('/view')
+@app.route('/edit')
+def view():
+    file_path = unquote(request.args.get('path', '')).replace('/', '\\')
+    if file_path == '':
+        return Response(False, "File path is required").to_json(), 400
+    if not os.path.isfile(file_path):
+        return Response(False, "File do not exist").to_json(), 400
+    if request.path == '/view':
+        return render_template('pages/view-edit.html', file_path=file_path, type="View")
+    return render_template('pages/view-edit.html', file_path=file_path, type="Edit")
+
+
+@app.route("/api/v1/file", methods=["GET"])
+def get_content():
+    try:
+        file_path = unquote(request.args.get('path', '')).replace('/', '\\')
+        if file_path == '':
+            return Response(False, "File path is required").to_json(), 400
+        if not os.path.isfile(file_path):
+            return Response(False, "The path does not exist").to_json(), 400
+        with open(file_path, 'r') as fp:
+            return Response(True, fp.read()).to_json(), 200
+    except Exception as e:
+        return Response(False, str(e)).to_json(), 400
+
+
+@app.route("/api/v1/file", methods=["PUT"])
+def update_file():
+    try:
+        file_path = unquote(request.args.get('path', '')).replace('/', '\\')
+        if file_path == '':
+            return Response(False, "File path is required").to_json(), 400
+        if not os.path.isfile(file_path):
+            return Response(False, "The path does not exist").to_json(), 400
+        content = request.get_json().get("content")
+        with open(file_path, 'w') as wp:
+            wp.write(content)
+        return Response(True, "File was modified with success").to_json(), 200
+    except Exception as e:
+        return Response(False, str(e)).to_json(), 400
 
 
 @app.route("/api/v1/rename", methods=["POST"])
 def rename_resource():
     try:
         data = request.get_json()
-        old_name, new_name = data.get("old_name", ''), data.get("new_name", '')
+        old_name, new_name = data.get("old_name", ""), data.get("new_name", "")
         if old_name == '' or new_name == '':
             return Response(False, "All the fields are required").to_json(), 400
         os.rename(old_name, new_name)
         return Response(True, "Resource successfully renamed").to_json(), 201
+    except Exception as e:
+        return Response(False, str(e)).to_json(), 400
+
+
+@app.route("/api/v1/file", methods=["POST"])
+def create_file():
+    try:
+        data = request.get_json()
+        file_path = data.get("file_path", '').replace('/', '\\')
+        if file_path == '':
+            return Response(False, "File path is required").to_json(), 400
+        with open(file_path, 'w'):
+            pass
+        return Response(True, "File successfully created").to_json(), 201
+    except Exception as e:
+        return Response(False, str(e)).to_json(), 400
+
+
+@app.route("/api/v1/folder", methods=["POST"])
+def create_folder():
+    try:
+        data = request.get_json()
+        folder_path = data.get("folder_path", '').replace('/', '\\')
+        if folder_path == '':
+            return Response(False, "Folder path is required")
+        os.mkdir(folder_path)
+        return Response(True, 'Folder successfully created').to_json(), 201
     except Exception as e:
         return Response(False, str(e)).to_json(), 400
 

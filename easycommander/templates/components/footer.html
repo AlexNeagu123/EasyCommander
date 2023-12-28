@@ -1,15 +1,26 @@
 {% from 'components/button-box.html' import buttonBox %}
-{% macro footer() %}
-     <footer>
-        <div class="footer-container">
-            {{ buttonBox(1, "Rename") }}
-            {{ buttonBox(2, "View") }}
-            {{ buttonBox(3, "Edit") }}
-            {{ buttonBox(4, "Copy") }}
-            {{ buttonBox(5, "Move") }}
-            {{ buttonBox(6, "MkDir") }}
-            {{ buttonBox(7, "MkFile") }}
-            {{ buttonBox(8, "Delete") }}
-        </div>
+{% macro footer(page_type) %}
+    <footer>
+        {% if page_type == "main" %}
+            <div class="footer-container">
+                {{ buttonBox(1, "Rename") }}
+                {{ buttonBox(2, "View") }}
+                {{ buttonBox(3, "Edit") }}
+                {{ buttonBox(4, "Copy") }}
+                {{ buttonBox(5, "Move") }}
+                {{ buttonBox(6, "MkDir") }}
+                {{ buttonBox(7, "MkFile") }}
+                {{ buttonBox(8, "Delete") }}
+            </div>
+        {% elif page_type == "View" %}
+            <div class="footer-container">
+                {{ buttonBox(1, "Quit") }}
+            </div>
+        {% else %}
+            <div class="footer-container">
+                {{ buttonBox(1, "Quit w/o saving") }}
+                {{ buttonBox(2, "Save & Quit") }}
+            </div>
+        {% endif %}
     </footer>
 {%- endmacro %}

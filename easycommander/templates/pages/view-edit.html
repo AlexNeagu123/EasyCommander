@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% from 'components/footer.html' import footer %}
+
+<title>{{ type }}</title>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
+<style>
+    #content-container {
+         {% if type == "Edit" %}
+             color: white;
+         {% else %}
+             color: #00D7D7;
+         {% endif %}
+    }
+</style>
+
+<body>
+<div class="panel-header">{{ file_path }}</div>
+<div id="content-container" {% if type == 'Edit' %} contenteditable="true" {% endif %}>>
+
+</div>
+
+{{ footer(type) }}
+
+<script>
+    const pageType = "{{ type }}";
+</script>
+
+<script src="{{ url_for('static', filename='scripts/globals.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/http-request.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/view-edit.js') }}"></script>
+</body>
+</html>
