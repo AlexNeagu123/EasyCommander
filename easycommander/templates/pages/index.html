@@ -4,7 +4,7 @@
 {% from 'components/footer.html' import footer %}
 {% from 'components/panel.html' import panel %}
 {% from 'components/rename-modal.html'import renameModal %}
-{% from 'components/delete-modal.html'import deleteModal %}
+{% from 'components/confirm-modal.html'import confirmModal %}
 {% from 'components/mkfile-modal.html' import mkFileModal %}
 {% from 'components/mkdir-modal.html' import mkDirModal %}
 
@@ -17,7 +17,7 @@
 </div>
 
 {{ renameModal() }}
-{{ deleteModal() }}
+{{ confirmModal() }}
 {{ mkFileModal() }}
 {{ mkDirModal() }}
 {{ footer("main") }}

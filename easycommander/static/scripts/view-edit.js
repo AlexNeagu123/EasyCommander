@@ -14,7 +14,7 @@ document.addEventListener("keydown", async (event) => {
         }
     }
 
-    if (event.key === 'F1' || event.key === 'F2') {
+    if (event.key === 'F1' || (event.key === 'F2' && pageType === 'Edit')) {
         event.preventDefault();
         const previousPage = localStorage.getItem('previousPage');
         if (!previousPage) {
@@ -24,18 +24,4 @@ document.addEventListener("keydown", async (event) => {
             window.location.href = `${previousPage}`;
         }
     }
-})
-
-const loadFileContent = async (filePath) => {
-    try {
-        const textContent = await httpClient.get(`${LOCALHOST}/api/v1/file?path=${filePath}`);
-        const fileContentContainer = document.getElementById('content-container');
-        fileContentContainer.innerText = textContent;
-    } catch (err) {
-        alert(`Loading Failed: ${err}`);
-    }
-};
-
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadFileContent(filePath);
 });

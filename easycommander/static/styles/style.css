@@ -12,7 +12,6 @@
 body {
     font-family: Rubik, 'Arial', 'Courier New', serif;
     background-color: var(--main-color);
-    color: black;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -112,9 +111,14 @@ table {
     font-weight: bold;
 }
 
-.selected {
+.focused {
     background-color: #088F8F;
     outline: none;
+}
+
+.panel .selected  td {
+    color: #FFA500;
+    font-weight: bold;
 }
 
 .panel-header {
@@ -148,7 +152,7 @@ table {
     gap: 20px;
 }
 
-#rename-modal, #delete-modal, #mkfile-modal, #mkdir-modal {
+#rename-modal, #confirm-modal, #mkfile-modal, #mkdir-modal {
     display: none;
 }
 
@@ -184,7 +188,7 @@ table {
     gap: 5px;
 }
 
-#rename-button, #delete-button, #mkfile-button, #mkdir-button, #cancel-button {
+#rename-button, #confirm-button, #mkfile-button, #mkdir-button, #cancel-button {
     cursor: pointer;
     background-color: #088F8F;
     color: white;

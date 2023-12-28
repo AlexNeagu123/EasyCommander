@@ -39,3 +39,8 @@ def get_folder_data(dir_path):
         'name': os.path.basename(dir_path),
         'children': children
     }
+
+
+def get_file_content(file_path):
+    with open(file_path, 'r') as fp:
+        return fp.read()

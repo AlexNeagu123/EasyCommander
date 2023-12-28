@@ -1,0 +1,11 @@
+{% macro confirmModal() %}
+    <div class="overlap-container" id="confirm-modal">
+        <div class="modal-box">
+            <p id="confirm-label"></p>
+            <div class="button-box">
+                <button type="button" id="confirm-button"></button>
+                <button type="button" id="cancel-button" onclick="closeModal('confirm-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}

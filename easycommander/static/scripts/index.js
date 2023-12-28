@@ -1,5 +1,8 @@
 const httpClient = new HttpRequest();
 
+const leftSelected = new Set();
+const rightSelected = new Set();
+
 let isModalActive = false;
 
 let [leftPath, rightPath, isLeftOn] =
@@ -14,14 +17,14 @@ function toggleClassOnElementById(elementId, className) {
 
 document.addEventListener("DOMContentLoaded", () => {
     if (isLeftOn) {
-        toggleClassOnElementById(`L${leftIndex}`, 'selected');
+        toggleClassOnElementById(`L${leftIndex}`, 'focused');
     } else {
-        toggleClassOnElementById(`R${rightIndex}`, 'selected');
+        toggleClassOnElementById(`R${rightIndex}`, 'focused');
     }
-    focusSelectedElement();
+    focusElement();
 });
 
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", async (event) => {
     if (isModalActive) {
         return;
     }
@@ -30,10 +33,22 @@ document.addEventListener("keydown", (event) => {
         handlePanelSwitch();
     }
     if (event.key === "ArrowDown") {
-        changeSelected(true);
+        changeFocused(true);
     }
     if (event.key === "ArrowUp") {
-        changeSelected(false);
+        changeFocused(false);
+    }
+    if (event.key === 'F4') {
+        await openCopyModal();
+    }
+    if (event.key === 'F5') {
+        await openMoveModal();
+    }
+    if (event.key === 'F6') {
+        await openMkDirModal();
+    }
+    if (event.key === 'F7') {
+        await openMkFileModal();
     }
 });
 const changeFolder = async (folderPath) => {
@@ -50,8 +65,26 @@ const changeFolder = async (folderPath) => {
     window.location.href = `${LOCALHOST}/?left_path=${encodedLeftPath}&right_path=${encodedRightPath}&tab=${encodedTab}`
 }
 
+function togglePathInSet(selectedSet, path) {
+    if (selectedSet.has(path)) {
+        selectedSet.delete(path);
+    } else {
+        selectedSet.add(path);
+    }
+}
 
-async function handleKeyPressOnSelect(event, path, baseName, fileType) {
+function selectElement(resourcePath) {
+    if (isLeftOn) {
+        togglePathInSet(leftSelected, resourcePath);
+        toggleClassOnElementById(`L${leftIndex}`, 'selected');
+    } else {
+        togglePathInSet(rightSelected, resourcePath);
+        toggleClassOnElementById(`R${rightIndex}`, 'selected');
+    }
+    focusElement();
+}
+
+async function handleKeyPressOnFocused(event, path, baseName, fileType) {
     if (isModalActive) {
         return;
     }
@@ -62,27 +95,24 @@ async function handleKeyPressOnSelect(event, path, baseName, fileType) {
     if (baseName === "..") {
         return;
     }
+    if (event.key === 'Control') {
+        selectElement(path);
+    }
     if (event.key === 'F1') {
         await openRenameModal(baseName);
     }
-    if((event.key === 'F2' || event.key === 'Enter') && fileType === 'file-name') {
+    if ((event.key === 'F2' || event.key === 'Enter') && fileType === 'file-name') {
         await openViewPage(baseName);
     }
-    if(event.key === 'F3' && fileType === 'file-name') {
+    if (event.key === 'F3' && fileType === 'file-name') {
         await openEditPage(baseName);
-    }
-    if(event.key === 'F6') {
-        await openMkDirModal();
-    }
-    if (event.key === 'F7') {
-        await openMkFileModal();
     }
     if (event.key === 'F8') {
         await openDeleteModal(baseName);
     }
 }
 
-const renameSelectedFolder = async (event, oldName) => {
+const renameFocusedResource = async (event, oldName) => {
     const oldPath = isLeftOn ? `${leftPath}/${oldName}` : `${rightPath}/${oldName}`;
     const newName = document.getElementById("rename-option").value;
     const newPath = isLeftOn ? `${leftPath}/${newName}` : `${rightPath}/${newName}`;
@@ -98,15 +128,16 @@ const renameSelectedFolder = async (event, oldName) => {
     }
 }
 
-const deleteSelectedFolder = async (event, fileName) => {
-    let fullPath = isLeftOn ? `${leftPath}/${fileName}` : `${rightPath}/${fileName}`;
-    fullPath = encodeURIComponent(fullPath);
-    try {
-        await httpClient.delete(`${LOCALHOST}/${API_PATH}/delete?path=${fullPath}`);
-        window.location.reload();
-    } catch (err) {
-        alert(`Delete Failed: ${err}`);
+const deleteFocusedResource = async (event, selectedSet) => {
+    for (let item of selectedSet) {
+        item = encodeURIComponent(item);
+        try {
+            await httpClient.delete(`${LOCALHOST}/${API_PATH}/delete?path=${item}`);
+        } catch (err) {
+            alert(`Delete Failed: ${err}`);
+        }
     }
+    window.location.reload();
 }
 
 const createNewFile = async (event) => {
@@ -122,7 +153,7 @@ const createNewFile = async (event) => {
     }
 }
 
-const createNewFolder = async() => {
+const createNewFolder = async () => {
     const baseName = document.getElementById('folder-name-input').value;
     const fullPath = isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`;
     try {
@@ -135,43 +166,67 @@ const createNewFolder = async() => {
     }
 }
 
-const handleChangeSelectedClick = async (event, clickedId) => {
-    event.preventDefault();
-    isLeftOn ? toggleClassOnElementById(`L${leftIndex}`, 'selected') :
-        toggleClassOnElementById(`R${rightIndex}`, 'selected');
+const copySelectedItems = async(selectedSet, destinationPath) => {
+    destinationPath = encodeURIComponent(destinationPath);
+    try {
+        await httpClient.post(`${LOCALHOST}/${API_PATH}/copy?dest_path=${destinationPath}`, {
+            items: Array.from(selectedSet)
+        });
+        window.location.reload()
+    } catch (err) {
+        alert(`Copy Failed: ${err}`);
+    }
+}
 
-    toggleClassOnElementById(clickedId, 'selected');
+const moveSelectedItems = async(selectedSet, destinationPath) => {
+    destinationPath = encodeURIComponent(destinationPath);
+    try {
+        await httpClient.post(`${LOCALHOST}/${API_PATH}/move?dest_path=${destinationPath}`, {
+            items: Array.from(selectedSet)
+        });
+        window.location.reload()
+    } catch (err) {
+        alert(`Copy Failed: ${err}`);
+    }
+}
+
+const handleChangeFocusedClick = async (event, clickedId) => {
+    event.preventDefault();
+    isLeftOn ? toggleClassOnElementById(`L${leftIndex}`, 'focused') :
+        toggleClassOnElementById(`R${rightIndex}`, 'focused');
+
+    toggleClassOnElementById(clickedId, 'focused');
 
     const newIndex = Number(clickedId.substring(1));
     clickedId.startsWith('L') ? leftIndex = newIndex : rightIndex = newIndex;
     clickedId.startsWith('L') ? isLeftOn = true : isLeftOn = false;
 }
 
-function focusSelectedElement() {
-    const selectedElement = document.querySelector('.selected');
-    if (selectedElement) {
-        selectedElement.focus();
+function focusElement() {
+    const focusedElement = document.querySelector('.focused');
+    if (focusedElement) {
+        focusedElement.focus();
     }
 }
 
 function handlePanelSwitch() {
-    toggleClassOnElementById(`L${leftIndex}`, 'selected');
-    toggleClassOnElementById(`R${rightIndex}`, 'selected');
+    toggleClassOnElementById(`L${leftIndex}`, 'focused');
+    toggleClassOnElementById(`R${rightIndex}`, 'focused');
     isLeftOn = !isLeftOn;
-    focusSelectedElement();
+    focusElement();
 }
 
-function changeSelected(isDown = true) {
+function changeFocused(isDown = true) {
     if (isLeftOn) {
-        toggleClassOnElementById(`L${leftIndex}`, 'selected');
+        toggleClassOnElementById(`L${leftIndex}`, 'focused');
         leftIndex = isDown ? Math.min(leftIndex + 1, LEFT_COUNT) : Math.max(1, leftIndex - 1);
-        toggleClassOnElementById(`L${leftIndex}`, 'selected');
+        toggleClassOnElementById(`L${leftIndex}`, 'focused');
     } else {
-        toggleClassOnElementById(`R${rightIndex}`, 'selected');
+        toggleClassOnElementById(`R${rightIndex}`, 'focused');
         rightIndex = isDown ? Math.min(rightIndex + 1, RIGHT_COUNT) : Math.max(1, rightIndex - 1);
-        toggleClassOnElementById(`R${rightIndex}`, 'selected');
+        toggleClassOnElementById(`R${rightIndex}`, 'focused');
     }
-    focusSelectedElement();
+    focusElement();
 }
 
 const openRenameModal = async (baseName) => {
@@ -181,16 +236,60 @@ const openRenameModal = async (baseName) => {
     renameModal.style.display = "flex";
     isModalActive = true;
     document.getElementById("rename-button").addEventListener('click', async (event) =>
-        renameSelectedFolder(event, baseName));
+        renameFocusedResource(event, baseName));
 }
 
-const openDeleteModal = async (baseName) => {
-    const deleteModal = document.getElementById('delete-modal');
-    document.getElementById("delete-label").textContent = `Are you sure you want to move ${baseName} to the Recycle Bin?`;
+
+const openDeleteModal = async () => {
+    const selectedSet = isLeftOn ? leftSelected : rightSelected;
+    const itemsNo = selectedSet.size
+    if (itemsNo === 0) {
+        return;
+    }
+
+    const deleteModal = document.getElementById('confirm-modal');
+    document.getElementById("confirm-label").textContent = `Are you sure you want to move ${itemsNo} items to the Recycle Bin?`;
     deleteModal.style.display = "flex";
     isModalActive = true;
-    document.getElementById("delete-button").addEventListener('click', async (event) =>
-        deleteSelectedFolder(event, baseName));
+    document.getElementById("confirm-button").textContent = "Delete";
+    document.getElementById("confirm-button").addEventListener('click', async (event) =>
+        deleteFocusedResource(event, selectedSet));
+}
+
+const openCopyModal = async () => {
+    const selectedSet = isLeftOn ? leftSelected : rightSelected;
+    let destinationPath = isLeftOn ? rightPath : leftPath;
+    const itemsNo = selectedSet.size
+    if (itemsNo === 0) {
+        return;
+    }
+
+    const copyModal = document.getElementById('confirm-modal');
+    document.getElementById("confirm-label").textContent = `Are you sure you want to copy ${itemsNo} items to ${destinationPath}?`;
+    copyModal.style.display = "flex";
+    isModalActive = true;
+
+    document.getElementById("confirm-button").textContent = "Copy";
+    document.getElementById("confirm-button").addEventListener('click', async (event) =>
+        copySelectedItems(selectedSet, destinationPath));
+}
+
+const openMoveModal = async () => {
+    const selectedSet = isLeftOn ? leftSelected : rightSelected;
+    let destinationPath = isLeftOn ? rightPath : leftPath;
+    const itemsNo = selectedSet.size
+    if (itemsNo === 0) {
+        return;
+    }
+
+    const moveModal = document.getElementById('confirm-modal');
+    document.getElementById("confirm-label").textContent = `Are you sure you want to move ${itemsNo} items to ${destinationPath}?`;
+    moveModal.style.display = "flex";
+    isModalActive = true;
+
+    document.getElementById("confirm-button").textContent = "Move";
+    document.getElementById("confirm-button").addEventListener('click', async (event) =>
+        moveSelectedItems(selectedSet, destinationPath));
 }
 
 const openMkFileModal = async () => {
@@ -201,7 +300,7 @@ const openMkFileModal = async () => {
         createNewFile(event));
 }
 
-const openMkDirModal = async() => {
+const openMkDirModal = async () => {
     const mkDirModal = document.getElementById('mkdir-modal');
     mkDirModal.style.display = "flex";
     isModalActive = true;
@@ -209,14 +308,14 @@ const openMkDirModal = async() => {
         createNewFolder(event));
 }
 
-const openViewPage = async(baseName) => {
+const openViewPage = async (baseName) => {
     let fullPath = isLeftOn ? `${leftPath}\\${baseName}` : `${rightPath}\\${baseName}`;
     fullPath = encodeURIComponent(fullPath);
     localStorage.setItem('previousPage', window.location.href);
     window.location.href = `${LOCALHOST}/view?path=${fullPath}`;
 }
 
-const openEditPage = async(baseName) => {
+const openEditPage = async (baseName) => {
     let fullPath = isLeftOn ? `${leftPath}\\${baseName}` : `${rightPath}\\${baseName}`;
     fullPath = encodeURIComponent(fullPath);
     localStorage.setItem('previousPage', window.location.href);
@@ -226,5 +325,5 @@ const openEditPage = async(baseName) => {
 const closeModal = (modalId) => {
     isModalActive = false;
     document.getElementById(modalId).style.display = "none";
-    focusSelectedElement();
+    focusElement();
 }

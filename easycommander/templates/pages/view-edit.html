@@ -17,9 +17,7 @@
 
 <body>
 <div class="panel-header">{{ file_path }}</div>
-<div id="content-container" {% if type == 'Edit' %} contenteditable="true" {% endif %}>>
-
-</div>
+<div id="content-container" {% if type == 'Edit' %} contenteditable="true" {% endif %}>{{ content }}</div>
 
 {{ footer(type) }}
 
