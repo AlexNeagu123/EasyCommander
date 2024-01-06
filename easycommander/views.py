@@ -128,7 +128,7 @@ def copy_items():
 
 
 @app.route('/api/v1/move', methods=['POST'])
-def move_items():
+def  move_items():
     try:
         request_body = request.get_json()
         dest_path = request_body.get('destination').replace('/', '\\')

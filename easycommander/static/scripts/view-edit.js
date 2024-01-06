@@ -3,15 +3,11 @@ const filePath = SEARCH_PARAMS.get('path');
 
 document.addEventListener("keydown", async (event) => {
     if (event.key === 'F2' && pageType === 'Edit') {
-        try {
-            const content = document.getElementById('content-container').innerText;
-            const encodedPath = encodeURI(filePath);
-            await httpClient.put(`${LOCALHOST}/${API_PATH}/file?path=${encodedPath}`, {
-                content: content
-            });
-        } catch(err) {
-            alert(`Saving failed: ${err}`)
+        const requestBody = {
+            content: document.getElementById('content-container').innerText
         }
+        const encodedPath = encodeURI(filePath);
+        await makeHttpRequest("PUT", `${LOCALHOST}/${API_PATH}/file?path=${encodedPath}`, requestBody);
     }
 
     if (event.key === 'F1' || (event.key === 'F2' && pageType === 'Edit')) {

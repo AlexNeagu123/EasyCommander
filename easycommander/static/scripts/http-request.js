@@ -29,3 +29,17 @@ class HttpRequest {
         return data.message;
     }
 }
+
+const makeHttpRequest = async (method, url, body= null) => {
+    try {
+        switch(method) {
+            case "POST": await httpClient.post(url, body); break;
+            case "PUT": await httpClient.put(url, body); break;
+            case "DELETE": await httpClient.delete(url); break;
+        }
+        return true;
+    } catch(err) {
+        alert(`Operation Failed: ${err}`);
+    }
+    return false;
+}

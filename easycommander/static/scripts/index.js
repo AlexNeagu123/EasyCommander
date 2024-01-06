@@ -50,21 +50,17 @@ async function handleKeyPressOnFocused(event, path, baseName, fileType) {
     if (event.key === 'Enter' && fileType === 'folder-name') {
         await changeFolder(path);
     }
-
     if (baseName === "..") {
         return;
     }
-
     if ((event.key === 'F2' || event.key === 'Enter') && fileType === 'file-name') {
         await openFilePage(baseName, "view");
         return;
     }
-
     if (event.key === 'F3' && fileType === 'file-name') {
         await openFilePage(baseName, "edit");
         return;
     }
-
     switch(event.key) {
         case "Control": selectElement(path); break;
         case "F1": await openRenameModal(baseName); break;
@@ -106,51 +102,49 @@ function selectElement(resourcePath) {
 
 const renameFocusedItem = async (event, oldName) => {
     const newName = document.getElementById("rename-option").value;
-    try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/rename`, {
-            old_name: isLeftOn ? `${leftPath}/${oldName}` : `${rightPath}/${oldName}`,
-            new_name: isLeftOn ? `${leftPath}/${newName}` : `${rightPath}/${newName}`
-        });
+    const requestBody = {
+        old_name: isLeftOn ? `${leftPath}/${oldName}` : `${rightPath}/${oldName}`,
+        new_name: isLeftOn ? `${leftPath}/${newName}` : `${rightPath}/${newName}`
+    };
+    const isSuccess = await makeHttpRequest("POST", `${LOCALHOST}/${API_PATH}/rename`, requestBody);
+    if(isSuccess) {
         window.location.reload();
-    } catch (err) {
-        alert(`Rename Failed: ${err}`);
     }
 }
 
 const deleteSelectedItems = async (event, selectedSet) => {
+    let isSuccess = true;
     for (let item of selectedSet) {
         item = encodeURIComponent(item);
-        try {
-            await httpClient.delete(`${LOCALHOST}/${API_PATH}/delete?path=${item}`);
-        } catch (err) {
-            alert(`Delete Failed: ${err}`);
+        isSuccess = await makeHttpRequest("DELETE", `${LOCALHOST}/${API_PATH}/delete?path=${item}`);
+        if(!isSuccess) {
+            break;
         }
     }
-    window.location.reload();
+    if(isSuccess) {
+        window.location.reload();
+    }
 }
 
 const createNewItem = async(itemType) => {
     const baseName = document.getElementById(`${itemType}-name-input`).value;
-    const fullPath = isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`;
-    try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/${itemType}`, {
-            path: fullPath
-        });
+    const requestBody = {
+        path: isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`
+    }
+    const isSuccess = await makeHttpRequest("POST", `${LOCALHOST}/${API_PATH}/${itemType}`, requestBody);
+    if(isSuccess) {
         window.location.reload();
-    } catch (err) {
-        alert(`Make File Failed: ${err}`);
     }
 }
 
 const copyOrMoveSelectedItems = async(selectedSet, destinationPath, operationType) => {
-    try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/${operationType}`, {
-            items: Array.from(selectedSet),
-            destination: destinationPath
-        });
-        window.location.reload()
-    } catch (err) {
-        alert(`Copy Failed: ${err}`);
+    const requestBody = {
+        items: Array.from(selectedSet),
+        destination: destinationPath
+    };
+    const isSuccess = await makeHttpRequest("POST", `${LOCALHOST}/${API_PATH}/${operationType}`, requestBody);
+    if(isSuccess) {
+        window.location.reload();
     }
 }
 
