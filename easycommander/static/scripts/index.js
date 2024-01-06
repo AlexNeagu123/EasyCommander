@@ -145,7 +145,7 @@ const createNewFile = async (event) => {
     const fullPath = isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`;
     try {
         await httpClient.post(`${LOCALHOST}/${API_PATH}/file`, {
-            file_path: fullPath
+            path: fullPath
         });
         window.location.reload();
     } catch (err) {
@@ -158,7 +158,7 @@ const createNewFolder = async () => {
     const fullPath = isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`;
     try {
         await httpClient.post(`${LOCALHOST}/${API_PATH}/folder`, {
-            folder_path: fullPath
+            path: fullPath
         });
         window.location.reload();
     } catch (err) {
@@ -167,10 +167,10 @@ const createNewFolder = async () => {
 }
 
 const copySelectedItems = async(selectedSet, destinationPath) => {
-    destinationPath = encodeURIComponent(destinationPath);
     try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/copy?dest_path=${destinationPath}`, {
-            items: Array.from(selectedSet)
+        await httpClient.post(`${LOCALHOST}/${API_PATH}/copy`, {
+            items: Array.from(selectedSet),
+            destination: destinationPath
         });
         window.location.reload()
     } catch (err) {
@@ -179,10 +179,10 @@ const copySelectedItems = async(selectedSet, destinationPath) => {
 }
 
 const moveSelectedItems = async(selectedSet, destinationPath) => {
-    destinationPath = encodeURIComponent(destinationPath);
     try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/move?dest_path=${destinationPath}`, {
-            items: Array.from(selectedSet)
+        await httpClient.post(`${LOCALHOST}/${API_PATH}/move`, {
+            items: Array.from(selectedSet),
+            destination: destinationPath
         });
         window.location.reload()
     } catch (err) {
@@ -311,8 +311,8 @@ const openMkDirModal = async () => {
 const openViewPage = async (baseName) => {
     let fullPath = isLeftOn ? `${leftPath}\\${baseName}` : `${rightPath}\\${baseName}`;
     fullPath = encodeURIComponent(fullPath);
-    localStorage.setItem('previousPage', window.location.href);
     window.location.href = `${LOCALHOST}/view?path=${fullPath}`;
+    localStorage.setItem('previousPage', window.location.href);
 }
 
 const openEditPage = async (baseName) => {

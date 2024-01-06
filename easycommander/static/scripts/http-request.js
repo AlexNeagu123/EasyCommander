@@ -1,10 +1,4 @@
 class HttpRequest {
-    get(url) {
-        return fetch(url, {
-            method: 'GET'
-        }).then(this.handleResponse);
-    }
-
     post(url, body) {
         return fetch(url, {
             method: 'POST',

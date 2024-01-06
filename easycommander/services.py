@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from .models import FileData, FolderData
 
 
 def get_file_info(file_path, parent_folder=None):
@@ -15,15 +16,8 @@ def get_file_info(file_path, parent_folder=None):
     created_timestamp = os.path.getctime(file_path)
     created_date = datetime.fromtimestamp(created_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-    file_info = {
-        'name': name,
-        'size': size,
-        'extension': extension,
-        'created_date': created_date,
-        'full_path': file_path.replace('\\', '/')
-    }
-
-    return file_info
+    return FileData(name=name, size=size, extension=extension,
+                    created_date=created_date, full_path=file_path.replace('\\', '/'))
 
 
 def get_folder_data(dir_path):
@@ -34,11 +28,7 @@ def get_folder_data(dir_path):
             child_path = os.path.join(dir_path, child)
         children.append(get_file_info(child_path, parent_folder=str(Path(dir_path).parent.absolute())))
 
-    return {
-        'path': dir_path.replace('\\', '/'),
-        'name': os.path.basename(dir_path),
-        'children': children
-    }
+    return FolderData(full_path=dir_path.replace('\\', '/'), name=os.path.basename(dir_path), children=children)
 
 
 def get_file_content(file_path):

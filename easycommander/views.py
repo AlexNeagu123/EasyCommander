@@ -7,19 +7,19 @@ from flask import render_template, request, redirect, url_for
 from .services import get_folder_data, get_file_content
 from easycommander import app
 from urllib.parse import unquote
-from .response import Response
+from .models import Response
+from .validators import validate_non_empty, validate_path_is_file, validate_path_exists, validate_path_is_dir
 
 
 @app.route('/')
 def index():
     left_path, right_path, current_tab = (request.args.get(param, '') for param in ['left_path', 'right_path', 'tab'])
-
     if left_path == '' or right_path == '' or current_tab == '':
         current_directory = os.getcwd()
         return redirect(url_for('index', left_path=current_directory, right_path=current_directory, tab='0'))
 
-    left_panel = get_folder_data(unquote(left_path))
-    right_panel = get_folder_data(unquote(right_path))
+    left_panel = get_folder_data(unquote(left_path).replace('/', '\\'))
+    right_panel = get_folder_data(unquote(right_path).replace('/', '\\'))
     current_tab = unquote(current_tab)
 
     return render_template('pages/index.html', left_panel=left_panel,
@@ -29,120 +29,117 @@ def index():
 @app.route('/view')
 @app.route('/edit')
 def view():
-    file_path = unquote(request.args.get('path', '')).replace('/', '\\')
-    if file_path == '':
-        return Response(False, "File path is required").to_json(), 400
-    if not os.path.isfile(file_path):
-        return Response(False, "File do not exist").to_json(), 400
-    content = get_file_content(file_path)
-    if request.path == '/view':
-        return render_template('pages/view-edit.html', file_path=file_path, type="View", content=content)
-    return render_template('pages/view-edit.html', file_path=file_path, type="Edit", content=content)
+    try:
+        path = unquote(request.args.get('path', '')).replace('/', '\\')
+        validate_non_empty(query=True, path=path)
+        validate_path_is_file(path)
+        content = get_file_content(path)
+        if request.path == '/view':
+            return render_template('pages/view-edit.html', file_path=path, type='View', content=content)
+        return render_template('pages/view-edit.html', file_path=path, type='Edit', content=content)
+    except Exception as e:
+        return Response(False, str(e)).get_response(status_code=400)
 
 
-@app.route("/api/v1/file", methods=["PUT"])
+@app.route('/api/v1/file', methods=['PUT'])
 def update_file():
     try:
-        file_path = unquote(request.args.get('path', '')).replace('/', '\\')
-        if file_path == '':
-            return Response(False, "File path is required").to_json(), 400
-        if not os.path.isfile(file_path):
-            return Response(False, "The path does not exist").to_json(), 400
-        content = request.get_json().get("content")
-        with open(file_path, 'w') as wp:
+        path = unquote(request.args.get('path', '')).replace('/', '\\')
+        validate_non_empty(query=True, path=path)
+        validate_path_is_file(path)
+        content = request.get_json().get('content')
+        with open(path, 'w') as wp:
             wp.write(content)
-        return Response(True, "File was modified with success").to_json(), 200
+        return Response(True, 'File was modified with success').get_response(status_code=200)
     except Exception as e:
-        return Response(False, str(e)).to_json(), 400
+        return Response(False, str(e)).get_response(status_code=400)
 
 
-@app.route("/api/v1/rename", methods=["POST"])
+@app.route('/api/v1/rename', methods=['POST'])
 def rename_resource():
     try:
-        data = request.get_json()
-        old_name, new_name = data.get("old_name", ""), data.get("new_name", "")
-        if old_name == '' or new_name == '':
-            return Response(False, "All the fields are required").to_json(), 400
+        request_body = request.get_json()
+        old_name, new_name = request_body.get('old_name', ''), request_body.get('new_name', '')
+        validate_non_empty(query=False, old_name=old_name, new_name=new_name)
         os.rename(old_name, new_name)
-        return Response(True, "Resource successfully renamed").to_json(), 201
+        return Response(True, 'Resource successfully renamed').get_response(status_code=201)
     except Exception as e:
-        return Response(False, str(e)).to_json(), 400
+        return Response(False, str(e)).get_response(status_code=400)
 
 
-@app.route("/api/v1/file", methods=["POST"])
+@app.route('/api/v1/file', methods=['POST'])
 def create_file():
     try:
-        data = request.get_json()
-        file_path = data.get("file_path", '').replace('/', '\\')
-        if file_path == '':
-            return Response(False, "File path is required").to_json(), 400
-        with open(file_path, 'w'):
+        request_body = request.get_json()
+        path = request_body.get('path', '').replace('/', '\\')
+        path = request_body.get('path', '').replace('/', '\\')
+        validate_non_empty(query=False, path=path)
+        with open(path, 'w'):
             pass
-        return Response(True, "File successfully created").to_json(), 201
+        return Response(True, 'File successfully created').get_response(status_code=201)
     except Exception as e:
-        return Response(False, str(e)).to_json(), 400
+        return Response(False, str(e)).get_response(status_code=400)
 
 
-@app.route("/api/v1/folder", methods=["POST"])
+@app.route('/api/v1/folder', methods=['POST'])
 def create_folder():
     try:
-        data = request.get_json()
-        folder_path = data.get("folder_path", '').replace('/', '\\')
-        if folder_path == '':
-            return Response(False, "Folder path is required")
-        os.mkdir(folder_path)
-        return Response(True, 'Folder successfully created').to_json(), 201
+        request_body = request.get_json()
+        path = request_body.get('path', '').replace('/', '\\')
+        validate_non_empty(query=False, path=path)
+        os.mkdir(path)
+        return Response(True, 'Folder successfully created').get_response(status_code=201)
     except Exception as e:
-        return Response(False, str(e)).to_json(), 400
+        return Response(False, str(e)).get_response(status_code=400)
 
 
-@app.route("/api/v1/delete", methods=["DELETE"])
-def delete_resource():
+@app.route('/api/v1/delete', methods=['DELETE'])
+def delete_item():
     try:
-        resource_path = request.args.get('path', '').replace('/', '\\')
-        if resource_path == '':
-            return Response(False, "Query parameter 'path' should not be empty").to_json(), 400
-        if not os.path.isfile(resource_path) and not os.path.isdir(resource_path):
-            return Response(False, "The path does not exist").to_json(), 400
-        send2trash(resource_path)
-        return Response(True, "Resource successfully moved to recycle bin").to_json(), 203
+        path = request.args.get('path', '').replace('/', '\\')
+        validate_path_exists(path)
+        validate_non_empty(query=True, path=path)
+        send2trash(path)
+        return Response(True, 'Resource successfully moved to recycle bin').get_response(status_code=201)
     except Exception as e:
-        return Response(False, str(e)).to_json(), 400
+        return Response(False, str(e)).get_response(status_code=400)
 
 
-@app.route("/api/v1/copy", methods=["POST"])
+@app.route('/api/v1/copy', methods=['POST'])
 def copy_items():
     try:
-        dest_path = request.args.get('dest_path', '').replace('/', '\\')
-        if dest_path == '':
-            return Response(False, "Query parameter 'dest_path' should not be empty").to_json(), 400
-        if not os.path.exists(dest_path):
-            return Response(False, "The destination path does not exist").to_json(), 400
-        data = request.get_json()
-        items = list(map(lambda x: x.replace('/', '\\'), data.get('items', [])))
+        request_body = request.get_json()
+        dest_path = request_body.get('destination').replace('/', '\\')
+
+        validate_non_empty(query=False, destination=dest_path)
+        validate_path_is_dir(dest_path)
+
+        items = list(map(lambda x: x.replace('/', '\\'), request_body.get('items', [])))
         for item in items:
             if os.path.isfile(item):
                 shutil.copy(item, dest_path)
             elif os.path.isdir(item):
                 base_name = os.path.basename(item)
                 shutil.copytree(item, os.path.join(dest_path, base_name))
-        return Response(True, "All the items where successfully copied!").to_json(), 200
+
+        return Response(True, 'All the items where successfully copied!').get_response(status_code=200)
     except Exception as e:
-        return Response(False, str(e)).to_json(), 400
+        return Response(False, str(e)).get_response(status_code=400)
 
 
-@app.route("/api/v1/move", methods=["POST"])
+@app.route('/api/v1/move', methods=['POST'])
 def move_items():
     try:
-        dest_path = request.args.get('dest_path', '').replace('/', '\\')
-        if dest_path == '':
-            return Response(False, "Query parameter 'dest_path' should not be empty").to_json(), 400
-        if not os.path.exists(dest_path):
-            return Response(False, "The destination path does not exist").to_json(), 400
-        data = request.get_json()
-        items = list(map(lambda x: x.replace('/', '\\'), data.get('items', [])))
+        request_body = request.get_json()
+        dest_path = request_body.get('destination').replace('/', '\\')
+
+        validate_non_empty(query=False, destination=dest_path)
+        validate_path_is_dir(dest_path)
+
+        items = list(map(lambda x: x.replace('/', '\\'), request_body.get('items', [])))
         for item in items:
             shutil.move(item, dest_path)
-        return Response(True, "All the items where successfully copied!").to_json(), 200
+        return Response(True, 'All the items where successfully copied!').get_response(status_code=200)
+
     except Exception as e:
-        return Response(False, str(e)).to_json(), 400
+        return Response(False, str(e)).get_response(status_code=400)
