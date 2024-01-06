@@ -28,29 +28,49 @@ document.addEventListener("keydown", async (event) => {
     if (isModalActive) {
         return;
     }
+
     event.preventDefault();
-    if (event.key === "Tab") {
-        handlePanelSwitch();
-    }
-    if (event.key === "ArrowDown") {
-        changeFocused(true);
-    }
-    if (event.key === "ArrowUp") {
-        changeFocused(false);
-    }
-    if (event.key === 'F4') {
-        await openCopyModal();
-    }
-    if (event.key === 'F5') {
-        await openMoveModal();
-    }
-    if (event.key === 'F6') {
-        await openMkDirModal();
-    }
-    if (event.key === 'F7') {
-        await openMkFileModal();
+    switch(event.key) {
+        case "Tab": handlePanelSwitch(); break;
+        case "ArrowDown": changeFocused(true); break;
+        case "ArrowUp": changeFocused(false); break;
+        case "F4": await openModalWithSelection("copy"); break;
+        case "F5": await openModalWithSelection("move"); break;
+        case "F6": await openMkItemModal("mkdir"); break;
+        case "F7": await openMkItemModal("mkfile"); break;
+        case "F8": await openModalWithSelection("delete"); break;
     }
 });
+
+async function handleKeyPressOnFocused(event, path, baseName, fileType) {
+    if (isModalActive) {
+        return;
+    }
+    event.preventDefault();
+    if (event.key === 'Enter' && fileType === 'folder-name') {
+        await changeFolder(path);
+    }
+
+    if (baseName === "..") {
+        return;
+    }
+
+    if ((event.key === 'F2' || event.key === 'Enter') && fileType === 'file-name') {
+        await openFilePage(baseName, "view");
+        return;
+    }
+
+    if (event.key === 'F3' && fileType === 'file-name') {
+        await openFilePage(baseName, "edit");
+        return;
+    }
+
+    switch(event.key) {
+        case "Control": selectElement(path); break;
+        case "F1": await openRenameModal(baseName); break;
+    }
+}
+
 const changeFolder = async (folderPath) => {
     if (isLeftOn) {
         leftPath = folderPath;
@@ -84,43 +104,12 @@ function selectElement(resourcePath) {
     focusElement();
 }
 
-async function handleKeyPressOnFocused(event, path, baseName, fileType) {
-    if (isModalActive) {
-        return;
-    }
-    event.preventDefault();
-    if (event.key === 'Enter' && fileType === 'folder-name') {
-        await changeFolder(path);
-    }
-    if (baseName === "..") {
-        return;
-    }
-    if (event.key === 'Control') {
-        selectElement(path);
-    }
-    if (event.key === 'F1') {
-        await openRenameModal(baseName);
-    }
-    if ((event.key === 'F2' || event.key === 'Enter') && fileType === 'file-name') {
-        await openViewPage(baseName);
-    }
-    if (event.key === 'F3' && fileType === 'file-name') {
-        await openEditPage(baseName);
-    }
-    if (event.key === 'F8') {
-        await openDeleteModal(baseName);
-    }
-}
-
-const renameFocusedResource = async (event, oldName) => {
-    const oldPath = isLeftOn ? `${leftPath}/${oldName}` : `${rightPath}/${oldName}`;
+const renameFocusedItem = async (event, oldName) => {
     const newName = document.getElementById("rename-option").value;
-    const newPath = isLeftOn ? `${leftPath}/${newName}` : `${rightPath}/${newName}`;
-
     try {
         await httpClient.post(`${LOCALHOST}/${API_PATH}/rename`, {
-            old_name: oldPath,
-            new_name: newPath
+            old_name: isLeftOn ? `${leftPath}/${oldName}` : `${rightPath}/${oldName}`,
+            new_name: isLeftOn ? `${leftPath}/${newName}` : `${rightPath}/${newName}`
         });
         window.location.reload();
     } catch (err) {
@@ -128,7 +117,7 @@ const renameFocusedResource = async (event, oldName) => {
     }
 }
 
-const deleteFocusedResource = async (event, selectedSet) => {
+const deleteSelectedItems = async (event, selectedSet) => {
     for (let item of selectedSet) {
         item = encodeURIComponent(item);
         try {
@@ -140,11 +129,11 @@ const deleteFocusedResource = async (event, selectedSet) => {
     window.location.reload();
 }
 
-const createNewFile = async (event) => {
-    const baseName = document.getElementById('file-name-input').value;
+const createNewItem = async(itemType) => {
+    const baseName = document.getElementById(`${itemType}-name-input`).value;
     const fullPath = isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`;
     try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/file`, {
+        await httpClient.post(`${LOCALHOST}/${API_PATH}/${itemType}`, {
             path: fullPath
         });
         window.location.reload();
@@ -153,34 +142,9 @@ const createNewFile = async (event) => {
     }
 }
 
-const createNewFolder = async () => {
-    const baseName = document.getElementById('folder-name-input').value;
-    const fullPath = isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`;
+const copyOrMoveSelectedItems = async(selectedSet, destinationPath, operationType) => {
     try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/folder`, {
-            path: fullPath
-        });
-        window.location.reload();
-    } catch (err) {
-        alert(`Make Folder Failed: ${err}`);
-    }
-}
-
-const copySelectedItems = async(selectedSet, destinationPath) => {
-    try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/copy`, {
-            items: Array.from(selectedSet),
-            destination: destinationPath
-        });
-        window.location.reload()
-    } catch (err) {
-        alert(`Copy Failed: ${err}`);
-    }
-}
-
-const moveSelectedItems = async(selectedSet, destinationPath) => {
-    try {
-        await httpClient.post(`${LOCALHOST}/${API_PATH}/move`, {
+        await httpClient.post(`${LOCALHOST}/${API_PATH}/${operationType}`, {
             items: Array.from(selectedSet),
             destination: destinationPath
         });
@@ -236,90 +200,56 @@ const openRenameModal = async (baseName) => {
     renameModal.style.display = "flex";
     isModalActive = true;
     document.getElementById("rename-button").addEventListener('click', async (event) =>
-        renameFocusedResource(event, baseName));
+        renameFocusedItem(event, baseName));
 }
 
-
-const openDeleteModal = async () => {
-    const selectedSet = isLeftOn ? leftSelected : rightSelected;
-    const itemsNo = selectedSet.size
-    if (itemsNo === 0) {
-        return;
-    }
-
-    const deleteModal = document.getElementById('confirm-modal');
-    document.getElementById("confirm-label").textContent = `Are you sure you want to move ${itemsNo} items to the Recycle Bin?`;
-    deleteModal.style.display = "flex";
-    isModalActive = true;
-    document.getElementById("confirm-button").textContent = "Delete";
-    document.getElementById("confirm-button").addEventListener('click', async (event) =>
-        deleteFocusedResource(event, selectedSet));
-}
-
-const openCopyModal = async () => {
+const openModalWithSelection = async(operationType) => {
     const selectedSet = isLeftOn ? leftSelected : rightSelected;
     let destinationPath = isLeftOn ? rightPath : leftPath;
+    let action = operationType === "delete" ? "move" : operationType;
+    if(operationType === "delete") {
+        destinationPath = "Recycle Bin";
+    }
+
     const itemsNo = selectedSet.size
     if (itemsNo === 0) {
         return;
     }
 
-    const copyModal = document.getElementById('confirm-modal');
-    document.getElementById("confirm-label").textContent = `Are you sure you want to copy ${itemsNo} items to ${destinationPath}?`;
-    copyModal.style.display = "flex";
-    isModalActive = true;
+    const modal = document.getElementById('confirm-modal');
+    document.getElementById("confirm-label").textContent = `Are you sure 
+        you want to ${action} ${itemsNo} items to ${destinationPath}?`;
 
-    document.getElementById("confirm-button").textContent = "Copy";
-    document.getElementById("confirm-button").addEventListener('click', async (event) =>
-        copySelectedItems(selectedSet, destinationPath));
+    modal.style.display = "flex";
+    isModalActive = true;
+    document.getElementById("confirm-button").textContent = operationType[0].toUpperCase() + operationType.slice(1);
+
+    document.getElementById("confirm-button").addEventListener('click', async (event) => {
+        switch (operationType) {
+            case "delete": await deleteSelectedItems(event, selectedSet); break;
+            case "move": await copyOrMoveSelectedItems(selectedSet, destinationPath, operationType); break;
+            case "copy": await copyOrMoveSelectedItems(selectedSet, destinationPath, operationType); break;
+        }
+    });
 }
 
-const openMoveModal = async () => {
-    const selectedSet = isLeftOn ? leftSelected : rightSelected;
-    let destinationPath = isLeftOn ? rightPath : leftPath;
-    const itemsNo = selectedSet.size
-    if (itemsNo === 0) {
-        return;
-    }
-
-    const moveModal = document.getElementById('confirm-modal');
-    document.getElementById("confirm-label").textContent = `Are you sure you want to move ${itemsNo} items to ${destinationPath}?`;
-    moveModal.style.display = "flex";
+const openMkItemModal = async(operationType) => {
+    const modal = document.getElementById(`${operationType}-modal`);
+    modal.style.display = "flex";
     isModalActive = true;
+    document.getElementById(`${operationType}-button`).addEventListener('click', async (event) => {
+        switch (operationType) {
+            case "mkfile": await createNewItem('file'); break;
+            case "mkdir": await createNewItem('folder'); break;
+        }
+    });
+};
 
-    document.getElementById("confirm-button").textContent = "Move";
-    document.getElementById("confirm-button").addEventListener('click', async (event) =>
-        moveSelectedItems(selectedSet, destinationPath));
-}
-
-const openMkFileModal = async () => {
-    const mkFileModal = document.getElementById('mkfile-modal');
-    mkFileModal.style.display = "flex";
-    isModalActive = true;
-    document.getElementById('mkfile-button').addEventListener('click', async (event) =>
-        createNewFile(event));
-}
-
-const openMkDirModal = async () => {
-    const mkDirModal = document.getElementById('mkdir-modal');
-    mkDirModal.style.display = "flex";
-    isModalActive = true;
-    document.getElementById('mkdir-button').addEventListener('click', async (event) =>
-        createNewFolder(event));
-}
-
-const openViewPage = async (baseName) => {
+const openFilePage = async (baseName, pageType) => {
     let fullPath = isLeftOn ? `${leftPath}\\${baseName}` : `${rightPath}\\${baseName}`;
     fullPath = encodeURIComponent(fullPath);
-    window.location.href = `${LOCALHOST}/view?path=${fullPath}`;
+    window.location.href = `${LOCALHOST}/${pageType}?path=${fullPath}`;
     localStorage.setItem('previousPage', window.location.href);
-}
-
-const openEditPage = async (baseName) => {
-    let fullPath = isLeftOn ? `${leftPath}\\${baseName}` : `${rightPath}\\${baseName}`;
-    fullPath = encodeURIComponent(fullPath);
-    localStorage.setItem('previousPage', window.location.href);
-    window.location.href = `${LOCALHOST}/edit?path=${fullPath}`;
 }
 
 const closeModal = (modalId) => {
