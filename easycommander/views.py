@@ -13,6 +13,25 @@ from .validators import validate_non_empty, validate_path_is_file, validate_path
 
 @app.route('/')
 def index():
+    """
+    This route is responsible for rendering the main page.
+    The page displays two panels representing folders specified by the **left_path** and **right_path**
+    query parameters. The 'tab' parameter is used to determine the active tab on the page.
+
+    Query Parameters
+    ----------------
+    left_path : str, optional
+        The path to the left panel folder. If not provided, the current working directory is used.
+    right_path : str, optional
+        The path to the right panel folder. If not provided, the current working directory is used.
+    tab : str, optional
+        The active tab on the page. If not provided, the default tab (tab='0') is used.
+
+    Returns
+    -------
+    str
+        The rendered HTML content for the main page.
+    """
     left_path, right_path, current_tab = (request.args.get(param, '') for param in ['left_path', 'right_path', 'tab'])
     if left_path == '' or right_path == '' or current_tab == '':
         current_directory = os.getcwd()
@@ -29,6 +48,32 @@ def index():
 @app.route('/view')
 @app.route('/edit')
 def view():
+    """
+    These routes are responsible for rendering a page for viewing or editing the content of a file specified
+    by the **path** query parameter.
+
+    Routes
+    ------
+    /view
+        Renders the 'view' page for the specified file.
+    /edit
+        Renders the 'edit' page for the specified file.
+
+    Query Parameters
+    ----------------
+    path : str
+        The (encoded) path to the file to be viewed or edited
+
+    Returns
+    -------
+    str
+        The rendered HTML content for the view or edit page.
+
+    Notes
+    -----
+    If the request cannot be resolved, the function returns a :class:`Response` with
+    the **success** attribute set to False.
+    """
     try:
         path = unquote(request.args.get('path', '')).replace('/', '\\')
         validate_non_empty(query=True, path=path)
@@ -43,6 +88,35 @@ def view():
 
 @app.route('/api/v1/file', methods=['PUT'])
 def update_file():
+    """
+    This route is responsible for updating the content of a file specified by the 'path' query parameter.
+    The new content is provided in the JSON payload under the 'content' key.
+
+    HTTP Method
+    -----------
+    PUT
+
+    Route
+    ------
+    /api/v1/file
+
+    Query Parameters
+    ----------------
+    path : str
+        The (encoded) path to the file to be updated
+
+    JSON Payload
+    ------------
+    content : str
+        The new content to be written to the file.
+
+    Returns
+    -------
+    tuple
+        A tuple consisting of the serialized :class:`Response` object and the HTTP status code.
+        If the file update is successful, the HTTP status code will be 200.
+        If there is an issue with the request, such as an invalid file path, the HTTP status code will be 400.
+    """
     try:
         path = unquote(request.args.get('path', '')).replace('/', '\\')
         validate_non_empty(query=True, path=path)
@@ -71,7 +145,6 @@ def rename_resource():
 def create_file():
     try:
         request_body = request.get_json()
-        path = request_body.get('path', '').replace('/', '\\')
         path = request_body.get('path', '').replace('/', '\\')
         validate_non_empty(query=False, path=path)
         with open(path, 'w'):
