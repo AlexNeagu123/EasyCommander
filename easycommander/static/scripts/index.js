@@ -68,6 +68,7 @@ async function handleKeyPressOnFocused(event, path, baseName, fileType) {
 }
 
 const changeFolder = async (folderPath) => {
+    let [oldLeftPath, oldRightPath] = [leftPath, rightPath];
     if (isLeftOn) {
         leftPath = folderPath;
     } else {
@@ -78,6 +79,15 @@ const changeFolder = async (folderPath) => {
     const encodedRightPath = encodeURIComponent(rightPath);
     const encodedTab = encodeURIComponent(isLeftOn ? '0' : '1');
 
+    // See if the url can be changed
+    const isSuccess = await makeHttpRequest("GET",
+        `${LOCALHOST}/?left_path=${encodedLeftPath}&right_path=${encodedRightPath}&tab=${encodedTab}`);
+
+    if(!isSuccess) {
+        [leftPath, rightPath] = [oldLeftPath, oldRightPath];
+        return;
+    }
+    
     window.location.href = `${LOCALHOST}/?left_path=${encodedLeftPath}&right_path=${encodedRightPath}&tab=${encodedTab}`
 }
 
@@ -242,6 +252,10 @@ const openMkItemModal = async(operationType) => {
 const openFilePage = async (baseName, pageType) => {
     let fullPath = isLeftOn ? `${leftPath}\\${baseName}` : `${rightPath}\\${baseName}`;
     fullPath = encodeURIComponent(fullPath);
+    const isSuccess = await makeHttpRequest("GET", `${LOCALHOST}/${pageType}?path=${fullPath}`);
+    if(!isSuccess) {
+        return;
+    }
     window.location.href = `${LOCALHOST}/${pageType}?path=${fullPath}`;
     localStorage.setItem('previousPage', window.location.href);
 }
