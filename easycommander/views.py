@@ -131,7 +131,7 @@ def update_file():
         validate_non_empty(query=True, path=path)
         validate_path_is_file(path)
         content = request.get_json().get('content')
-        with open(path, 'w') as wp:
+        with open(path, 'w', encoding="utf-8") as wp:
             wp.write(content)
         return Response(True, 'File was modified with success').get_response(status_code=200)
     except Exception as e:
@@ -216,7 +216,7 @@ def create_file():
         request_body = request.get_json()
         path = request_body.get('path', '').replace('/', '\\')
         validate_non_empty(query=False, path=path)
-        with open(path, 'w'):
+        with open(path, 'w', encoding="utf-8"):
             pass
         return Response(True, 'File successfully created').get_response(status_code=201)
     except Exception as e:

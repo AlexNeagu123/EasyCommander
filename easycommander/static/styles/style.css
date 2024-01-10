@@ -169,8 +169,10 @@ table {
 }
 
 .modal-box label, .modal-box p {
-    font-size: smaller;
+    font-size: 1rem;
     margin-bottom: 0.2em;
+    white-space: normal;
+    max-width: 100%;
 }
 
 #rename-option, #file-name-input, #folder-name-input {

@@ -75,5 +75,5 @@ def get_file_content(file_path):
     str
         The text from the file.
     """
-    with open(file_path, 'r', encoding="utf8") as fp:
+    with open(file_path, 'r', encoding="utf-8") as fp:
         return fp.read()
