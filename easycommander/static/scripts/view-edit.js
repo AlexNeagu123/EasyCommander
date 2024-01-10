@@ -6,7 +6,7 @@ document.addEventListener("keydown", async (event) => {
         const requestBody = {
             content: document.getElementById('content-container').innerText
         }
-        const encodedPath = encodeURI(filePath);
+        const encodedPath = encodeURIComponent(filePath);
         await makeHttpRequest("PUT", `${LOCALHOST}/${API_PATH}/file?path=${encodedPath}`, requestBody);
     }
 

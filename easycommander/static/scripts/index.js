@@ -250,7 +250,7 @@ const openMkItemModal = async(operationType) => {
 };
 
 const openFilePage = async (baseName, pageType) => {
-    let fullPath = isLeftOn ? `${leftPath}\\${baseName}` : `${rightPath}\\${baseName}`;
+    let fullPath = isLeftOn ? `${leftPath}/${baseName}` : `${rightPath}/${baseName}`;
     fullPath = encodeURIComponent(fullPath);
     const isSuccess = await makeHttpRequest("GET", `${LOCALHOST}/${pageType}?path=${fullPath}`);
     if(!isSuccess) {
